@@ -1,15 +1,20 @@
 package com.khouloud.gestion_prod.service;
 
+import com.itextpdf.text.Font;
 import com.khouloud.gestion_prod.model.Product;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -25,7 +30,7 @@ public class ExportProductService {
 
             //add text to pdf file
             com.itextpdf.text.Font font= FontFactory.getFont(FontFactory.COURIER,14, BaseColor.BLACK);
-            Paragraph para=new Paragraph("Prducts List PDF",font);
+            Paragraph para=new Paragraph("Products List PDF",font);
             para.setAlignment(Element.ALIGN_CENTER);
             document.add(para);
             document.add(Chunk.NEWLINE);
@@ -83,5 +88,49 @@ public class ExportProductService {
             e.printStackTrace();
         }
         return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    public static ByteArrayInputStream productsExcel(List<Product> products) throws IOException {
+        String[] columns = {"name","description","prix","quantite","date Creation","dateUpdateP"};
+        try (XSSFWorkbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+            CreationHelper creationHelper=workbook.getCreationHelper();
+
+            XSSFSheet sheet= workbook.createSheet("products");
+
+
+            sheet.autoSizeColumn(columns.length);
+
+            org.apache.poi.ss.usermodel.Font headerFont=workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.BLUE.getIndex());
+
+            CellStyle cellStyle=workbook.createCellStyle();
+            cellStyle.setFont(headerFont);
+
+            //row fo header
+            Row headerRow=sheet.createRow(0);
+            //Header
+            for (int col=0;col<columns.length;col++){
+                Cell cell= headerRow.createCell(col);
+                cell.setCellValue(columns[col]);
+                cell.setCellStyle(cellStyle);
+            }
+            CellStyle cellStyle1=workbook.createCellStyle();
+            cellStyle1.setDataFormat(creationHelper.createDataFormat().getFormat("#"));
+            int rowIndex=1;
+            for (Product product:products){
+                Row row=sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(product.getNom());
+                row.createCell(1).setCellValue(product.getDescription());
+                row.createCell(2).setCellValue(String.valueOf(product.getPrix()));
+                row.createCell(3).setCellValue(String.valueOf(product.getQuantite()));
+                row.createCell(4).setCellValue(String.valueOf(product.getDateP()));
+                row.createCell(5).setCellValue(String.valueOf(product.getDateUpdate()));
+
+            }
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        }
     }
 }

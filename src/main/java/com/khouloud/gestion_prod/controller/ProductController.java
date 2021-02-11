@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -111,5 +112,14 @@ public class ProductController {
         HttpHeaders headers=new HttpHeaders();
         headers.add("Content-Disposition","inline; filename=product.pdf");
         return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body((new InputStreamResource(bais)));
+    }
+
+    @GetMapping("products/{id}/export/excel")
+    public ResponseEntity<InputStreamResource> exportTermsExcel(@PathVariable Long id) throws IOException {
+        List<Product>products=productRepository.findByCategoryId(id);
+        ByteArrayInputStream bais=exportProductService.productsExcel(products);
+        HttpHeaders headers=new HttpHeaders();
+        headers.add("Content-Disposition","inline; filename=product.xlsx");
+        return ResponseEntity.ok().headers(headers).body((new InputStreamResource(bais)));
     }
 }
