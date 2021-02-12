@@ -75,7 +75,7 @@ public class ProductController {
         product.setPrix(productDetails.getPrix());
         product.setNom(productDetails.getNom());
         product.setQuantite(productDetails.getQuantite());
-
+        product.setDateP(productDetails.getDateP());
         product.setDateUpdate(productDetails.getDateUpdate());
         Product updatedProduct = productRepository.save(product);
         return  ResponseEntity.ok(updatedProduct);
